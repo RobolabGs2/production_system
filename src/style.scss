@@ -1,0 +1,45 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+article {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+
+  & > * {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+body {
+  & > article {
+    height: 100%;
+    justify-content: space-around;
+  }
+}
+
+article.user {
+  border: solid 2px black;
+  border-radius: 8px;
+  padding: 8px 64px;
+  a {
+    color: black;
+  }
+
+  img {
+    max-width: 32px;
+  }
+
+  & button {
+    padding: 4px;
+    cursor: pointer;
+    border: solid 2px #2E2F30;
+    border-radius: 8px;
+  }
+  & > * {
+    margin-bottom: 4px;
+  }
+}
