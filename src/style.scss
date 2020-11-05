@@ -3,20 +3,20 @@
   padding: 0;
 }
 
-article {
+form {
   display: flex;
   flex-direction: column;
   align-content: center;
-
-  & > * {
-    margin-left: auto;
-    margin-right: auto;
+  border: solid 1px red;
+  label, input {
+    margin: 2px;
+    padding: 2px;
   }
 }
 
 body {
   & > article {
-    height: 100%;
+    display: flex;
     justify-content: space-around;
   }
 }
