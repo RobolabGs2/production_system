@@ -15,7 +15,7 @@
 Пирит -> FeS2
 МедныйКолчедан -> CuFeS2
 Галенит -> PbS
-Уголь -> С
+Уголь -> C
 Котик -> t
 O2 + H2 -> H2O + t
 O2 + t -> O3
@@ -162,10 +162,11 @@ Fe2O3 + H2 + H2S -> FeS + H2O
 Al + S + t -> Al2S3
 Na + KOH -> NaOH + K
 Cu2O + Al + t -> Al2O3 + Cu
-Al(OH)3 + t + Al2O3 + H2O
+Al(OH)3 + t -> Al2O3 + H2O
 Fe2O3 + H2 + t -> Fe + H2O
 Fe2O3 + CO -> Fe + CO2
-FeO + Co -> Fe + CO2
+FeO + CO -> Fe + CO2
+FeO + CO -> Fe + CO2
 Fe2O3 + Al -> Fe + Al2O3
 Cu + O2 + t -> CuO + Cu2O
 Cu + N2O + t -> Cu2O + N2
