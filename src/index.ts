@@ -10,7 +10,7 @@ class Rule {
         return this.premises.every((premise) => facts.has(premise));
     }
     public toString(withRaw = false, names?: Map<string, string>): string {
-        return `${this.premises.map(x=>names?names.get(x):x).join(" + ")} -> ${names?names.get(this.conslusion):this.conslusion}` + (withRaw ? ` (${this.origin})` : "");
+        return `${this.premises.map(x => names ? names.get(x) : x).join(" + ")} -> ${names ? names.get(this.conslusion) : this.conslusion}` + (withRaw ? ` (${this.origin})` : "");
     }
 }
 
@@ -38,8 +38,8 @@ Promise.all(
     }).reduce((acc, x) => acc.concat(x), []);
     const output = document.createElement("article");
     const chooseItems = createFactsSelector(facts, (dir, initial, target) => {
-        if (dir == Direction.Backward) { output.innerText = "Не реализовано"; return; }
-        const result = dir == Direction.Forward ? ForwardDeduce(rules, initial, target) : undefined;
+        // if (dir == Direction.Backward) { output.innerText = "Не реализовано"; return; }
+        const result = dir == Direction.Forward ? ForwardDeduce(rules, initial, target) : BackwardDeduce(rules, new Set(initial), target);
         if (result)
             output.innerText = result.map(r => r.toString(true, facts)).join("\n");
         else
@@ -56,7 +56,7 @@ function ForwardDeduce(rules: Rule[], initial: string[], target: string): Rule[]
     const unprocessed = new Set(rules);
     const conclusions = new Set(initial);
     while (!conclusions.has(target)) {
-        const rule = Array.from(unprocessed.keys()).find(r => r.applicable(conclusions)&&!conclusions.has(r.conslusion));
+        const rule = Array.from(unprocessed.keys()).find(r => r.applicable(conclusions) && !conclusions.has(r.conslusion));
         if (!rule) {
             return undefined;
         }
@@ -83,18 +83,25 @@ function ForwardDeduce(rules: Rule[], initial: string[], target: string): Rule[]
 //     return processed;
 // }
 
-// function BackwardDeduce(rules: Rule[], initial: string[], target: string): Rule[] | undefined {
-//     const started = new Set<string>();
-//     const finished = new Set<Rule>();
-//     const facts = new Map<string, Rule|null>(initial.map(fact=>[fact, null]));
-//     const elementsStack = [target];
-//     while(elementsStack.length) {
-//         const cur = elementsStack.pop()!;
-//         if(facts.has(cur))
-//             continue;
-//         let next = Array.from(new Set(rules.filter(rule => rule.conslusion == cur).map(x => x.premises).reduce((acc, x) => acc.concat(x), []).filter(x=>!facts.has(x))))
-//     }
-// }
+function BackwardDeduce(rules: Rule[], initial: Set<string>, target: string): Rule[] | undefined {
+    if (initial.has(target)) {
+        return [];
+    }
+    const candidates = rules.filter(rule => rule.conslusion === target);
+    nextRule: for (let i = 0; i < candidates.length; i++) {
+        const candidateRule = candidates[i];
+        let answer = [candidateRule];
+        for (let j = 0; j < candidateRule.premises.length; j++) {
+            const partialAnsw = BackwardDeduce(rules, initial, candidateRule.premises[j]);
+            if (partialAnsw === undefined) {
+                continue nextRule;
+            }
+            answer = partialAnsw.concat(answer);
+        }
+        return answer;
+    }
+    return;
+}
 
 enum Direction { Forward, Backward }
 
