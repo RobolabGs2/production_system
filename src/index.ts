@@ -1,18 +1,7 @@
+import { BackwardDeduce, ForwardDeduce, Rule } from "./deduces";
+import { createFactsSelector, Direction } from "./facts_selector";
 import { fetchTxt } from "./http_helpers";
 import "./style.scss"
-
-class Rule {
-    constructor(
-        public readonly premises: string[],
-        public readonly conslusion: string,
-        public readonly origin: string) { }
-    public applicable(facts: Set<string>): boolean {
-        return this.premises.every((premise) => facts.has(premise));
-    }
-    public toString(withRaw = false, names?: Map<string, string>): string {
-        return `${this.premises.map(x => names ? names.get(x) : x).join(" + ")} -> ${names ? names.get(this.conslusion) : this.conslusion}` + (withRaw ? ` (${this.origin})` : "");
-    }
-}
 
 Promise.all(
     ["Substances", "Chemistry"].
@@ -36,138 +25,58 @@ Promise.all(
         const [premises, conclusions] = rawRule.split(" -> ").map(x => x.split("+").map(x => x.trim()));
         return conclusions.map(c => new Rule(premises, c, rawRule));
     }).reduce((acc, x) => acc.concat(x), []);
+    const styleSheet = document.createElement("style");
+    document.body.appendChild(styleSheet);
+    const outputArticle = document.createElement("article");
     const output = document.createElement("article");
+    const outputHeader = document.createElement("header");
+    const outputFooter = document.createElement("section");
+    const footer = document.createElement("footer");
+    const seeRules = document.createElement("button");
+    seeRules.textContent = "Все правила";
+    seeRules.addEventListener("click", ()=>printRules(facts, rules, output, outputFooter, styleSheet))
+    footer.append(outputFooter, seeRules);
+    outputHeader.textContent = "Вывод:";
+    outputArticle.append(outputHeader, output, footer)
+    outputArticle.id = "output";
     const chooseItems = createFactsSelector(facts, (dir, initial, target) => {
-        // if (dir == Direction.Backward) { output.innerText = "Не реализовано"; return; }
-        const result = dir == Direction.Forward ? ForwardDeduce(rules, initial, target) : BackwardDeduce(rules, new Set(initial), target);
-        if (result)
-            output.innerText = result.map(r => r.toString(true, facts)).join("\n");
-        else
-            output.innerText = "Не выводимо";
+        try {
+            output.innerHTML = "";
+            const result = dir == Direction.Forward ? ForwardDeduce(rules, initial, target) : BackwardDeduce(rules, new Set(initial), target);
+            if (result)
+                printRules(facts, result, output, outputFooter, styleSheet, new Set(initial));
+            else
+                outputFooter.textContent = "Не выводимо";
+        } catch (e) {
+            outputFooter.textContent = e;
+        }
     });
-    output.innerText = rules.map(x => x.toString()).join("\n");
-    document.querySelector("article")!.append(output, chooseItems);
+    output.innerHTML = `<div style="text-align: center;">Слева можно выбрать начальные факты и конечный факт (с помощью чекбоксов или ЛКМ и ПКМ по строчке).<div>`;
+    document.querySelector("article")!.append(outputArticle, chooseItems);
     if (notFound.size)
         console.warn(Array.from(notFound.keys()).join("\n"));
 });
 
-function ForwardDeduce(rules: Rule[], initial: string[], target: string): Rule[] | undefined {
-    const processed = new Array<Rule>();
-    const unprocessed = new Set(rules);
-    const conclusions = new Set(initial);
-    while (!conclusions.has(target)) {
-        const rule = Array.from(unprocessed.keys()).find(r => r.applicable(conclusions) && !conclusions.has(r.conslusion));
-        if (!rule) {
-            return undefined;
-        }
-        processed.push(rule);
-        unprocessed.delete(rule);
-        conclusions.add(rule.conslusion);
+function printRules(facts: Map<string, string>, result: Rule[], output: HTMLElement, outputFooter: HTMLElement, styleSheet: HTMLStyleElement, initialSet?: Set<string>) {
+    output.innerHTML = "";
+    const factToSpan = (factId: string) => {
+        const wrapper = document.createElement("span");
+        wrapper.textContent = facts.get(factId)!;
+        const serializedId = factId.replace(/[)(]/g, '_')
+        wrapper.classList.add(serializedId);
+        if (initialSet?.has(factId)) wrapper.classList.add("initial-fact");
+        wrapper.addEventListener("mouseenter", () => styleSheet.textContent = `.${serializedId} { background-color: #383a42; font-weight: 700; }`);
+        wrapper.addEventListener("mouseleave", () => { if (styleSheet.textContent?.match(serializedId)) styleSheet.textContent = ""; });
+        return wrapper;
     }
-    return processed;
-}
-
-// function BackwardDeduce(rules: Rule[], initial: string[], target: string): Rule[] | undefined {
-//     const processed = new Array<Rule>();
-//     const unprocessed = new Set(rules);
-//     const conclusions = new Set(initial);
-//     class TreeNode {constructor(public readonly fact: string, public readonly rule: Rule, public readonly parent?: TreeNode){}}
-//     const buffer = rules.filter(r => r.conslusion == target).map(r => new TreeNode(target, r));
-//     while (buffer.length) {
-//         const current = buffer.shift();
-//         buffer.push(...Array.from(unprocessed.keys()).filter(r => r.conslusion === current?.fact).map());
-//         processed.push(rule);
-//         unprocessed.delete(rule);
-//         conclusions.add(rule.conslusion);
-//     }
-//     return processed;
-// }
-
-function BackwardDeduce(rules: Rule[], initial: Set<string>, target: string): Rule[] | undefined {
-    if (initial.has(target)) {
-        return [];
-    }
-    const candidates = rules.filter(rule => rule.conslusion === target);
-    nextRule: for (let i = 0; i < candidates.length; i++) {
-        const candidateRule = candidates[i];
-        let answer = [candidateRule];
-        for (let j = 0; j < candidateRule.premises.length; j++) {
-            const partialAnsw = BackwardDeduce(rules, initial, candidateRule.premises[j]);
-            if (partialAnsw === undefined) {
-                continue nextRule;
-            }
-            answer = partialAnsw.concat(answer);
-        }
-        return answer;
-    }
-    return;
-}
-
-enum Direction { Forward, Backward }
-
-function createFactsSelector(names: Map<string, string>, choosed: (dir: Direction, initialFacts: Array<string>, targetFact: string) => void) {
-    const chooseItems = document.createElement("form");
-    chooseItems.addEventListener("submit", (ev) => ev.preventDefault());
-    const header = document.createElement("header");
-    header.innerText = "Выберите факты"
-    header.title = "(ЛКМ - как начальный факт, ПКМ - как искомый)";
-    const items = document.createElement("article");
-    items.classList.add("selectable-list");
-    const initialInputs = new Array<HTMLInputElement>();
-    const targetInputs = new Array<HTMLInputElement>();
-    items.append(...Array.from(names.entries()).map(([id, name]) => {
-        const line = document.createElement("section");
-        line.classList.add('selectable-line');
-        line.title = id;
-        const isInitial = document.createElement("input");
-        isInitial.value = id;
-        isInitial.name = "isInitial";
-        isInitial.type = "checkbox";
-        const isTarget = document.createElement("input");
-        isTarget.value = id;
-        isTarget.name = "isTarget";
-        isTarget.type = "radio";
-        line.append(isInitial, name, isTarget);
-        initialInputs.push(isInitial);
-        targetInputs.push(isTarget);
-        line.addEventListener("mouseup", (ev: MouseEvent) => {
-            if (ev.target != line) return
-            switch (ev.button) {
-                case 0:
-                    if (isInitial.checked = !isInitial.checked)
-                        isTarget.checked = false;
-                    break;
-                case 2:
-                    if (isTarget.checked = !isTarget.checked)
-                        isInitial.checked = false;
-                    break;
-            }
-        });
-        line.addEventListener("contextmenu", (ev) => ev.preventDefault());
-        return line;
-    }));
-    const createEvent = (dir: Direction) => {
-        return (ev: MouseEvent) => {
-            const targetFact = targetInputs.find((input) => input.checked);
-            if (targetFact == null) {
-                alert("Выберите целевой факт");
-                return;
-            }
-            const initialFacts = initialInputs.filter((input) => input.checked);
-            if (initialFacts.length == 0) {
-                alert("Выберите начальные факты");
-                return;
-            }
-            choosed(dir, initialFacts.map(i => i.value), targetFact.value);
-        }
-    }
-    const footer = document.createElement("footer");
-    footer.append(...[["Прямой", Direction.Forward], ["Обратный", Direction.Backward]].map(([name, dir]) => {
-        const button = document.createElement("button");
-        button.innerText = name as string;
-        button.addEventListener("click", createEvent(dir as Direction));
-        return button;
-    }));
-    chooseItems.append(header, items, footer);
-    return chooseItems;
+    output.append(...result.map(r => {
+        const reaction = document.createElement("div");
+        reaction.title = r.origin;
+        reaction.classList.add("reaction");
+        reaction.append(...r.premises.map(factToSpan).reduce((acc, next) => acc.length ? acc.concat(" + ", next) : [next], new Array<Node | string>()))
+        reaction.append(" → ", factToSpan(r.conslusion))
+        reaction.classList.add(r.conslusion.replace(/[)(]/g, '_'));
+        return reaction;
+    }))
+    outputFooter.textContent = `Правил: ${result.length}`
 }

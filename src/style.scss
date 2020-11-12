@@ -4,24 +4,16 @@
 }
 
 form {
-  display: flex;
-  box-sizing: border-box;
-  flex-direction: column;
-  align-content: center;
-  max-height: 100vh;
   min-width: 256px;
-  background-color: ghostwhite;
   label,
   input {
     height: 16px;
     margin: 2px;
     padding: 2px;
   }
-  & > header {
-    text-align: center;
-    margin: 8px;
-  }
+  border-left: solid 1px white;
   & > footer {
+    justify-content: center;
     display: flex;
     button {
       width: 100%;
@@ -30,18 +22,60 @@ form {
   }
 }
 
-.selectable-list {
-  overflow: auto;
+form,
+#output {
+  color: #dad7dd;
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-content: center;
+  max-height: 100vh;
+  background-color: #2a2c33;
+  & > header {
+    text-align: center;
+    padding: 8px;
+    border-bottom: solid 1px wheat;
+    button {
+      float: right;
+    }
+  }
+  & > article {
+    overflow: auto;
+    height: 100%;
+    padding: 4px;
+  }
+  & > footer {
+    border-top: solid 1px wheat;
+    padding: 4px;
+  }
+}
+
+#output {
+  width: 100%;
+  & > footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    & > section {
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+.reaction {
+  text-align: center;
+  margin: 4px;
 }
 
 .selectable-line {
   display: flex;
   justify-content: space-between;
   padding: 4px;
-  border-top: solid 1px gold;
+  border-top: solid 1px wheat;
   &:hover {
     cursor: pointer;
-    background-color: aqua;
+    background-color: #383a42;
   }
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -49,10 +83,24 @@ form {
   user-select: none;
 }
 
+.reaction {
+  span {
+    box-sizing: border-box;
+  }
+}
+
+.initial-fact {
+  text-decoration: underline;
+}
+
 body {
   font-family: monospace;
-  font-size: large;
+  font-size: larger;
   & > article {
+    & > * {
+      overflow: auto;
+      max-height: 100vh;
+    }
     display: flex;
     justify-content: space-between;
   }
@@ -79,4 +127,23 @@ article.user {
   & > * {
     margin-bottom: 4px;
   }
+}
+
+::-webkit-scrollbar-track {
+  border: 2px solid #333;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  border: 2px solid #333;
+  border-bottom-color: #333;
+  border-top-color: #333;
+  background-color: #111;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
 }
