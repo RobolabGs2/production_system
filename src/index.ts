@@ -25,6 +25,7 @@ Promise.all(
         const [premises, conclusions] = rawRule.split(" -> ").map(x => x.split("+").map(x => x.trim()));
         return conclusions.map(c => new Rule(premises, c, rawRule));
     }).reduce((acc, x) => acc.concat(x), []);
+    rules.sort((a, b)=>a.premises.length-b.premises.length);
     const styleSheet = document.createElement("style");
     document.body.appendChild(styleSheet);
     const outputArticle = document.createElement("article");
@@ -34,7 +35,7 @@ Promise.all(
     const footer = document.createElement("footer");
     const seeRules = document.createElement("button");
     seeRules.textContent = "Все правила";
-    seeRules.addEventListener("click", ()=>printRules(facts, rules, output, outputFooter, styleSheet))
+    seeRules.addEventListener("click", () => printRules(facts, rules, output, outputFooter, styleSheet))
     footer.append(outputFooter, seeRules);
     outputHeader.textContent = "Вывод:";
     outputArticle.append(outputHeader, output, footer)
@@ -42,7 +43,7 @@ Promise.all(
     const chooseItems = createFactsSelector(facts, (dir, initial, target) => {
         try {
             output.innerHTML = "";
-            const result = dir == Direction.Forward ? ForwardDeduce(rules, initial, target) : BackwardDeduce(rules, new Set(initial), target);
+            const result = dir == Direction.Forward ? ForwardDeduce(rules, initial, target) : BackwardDeduce(rules, initial, target);
             if (result)
                 printRules(facts, result, output, outputFooter, styleSheet, new Set(initial));
             else
@@ -51,7 +52,7 @@ Promise.all(
             outputFooter.textContent = e;
         }
     });
-    output.innerHTML = `<div style="text-align: center;">Слева можно выбрать начальные факты и конечный факт (с помощью чекбоксов или ЛКМ и ПКМ по строчке).<div>`;
+    output.innerHTML = `<div style="text-align: center;">Справа можно выбрать начальные факты и конечный факт (с помощью чекбоксов или ЛКМ и ПКМ по строчке).<div>`;
     document.querySelector("article")!.append(outputArticle, chooseItems);
     if (notFound.size)
         console.warn(Array.from(notFound.keys()).join("\n"));
@@ -65,8 +66,8 @@ function printRules(facts: Map<string, string>, result: Rule[], output: HTMLElem
         const serializedId = factId.replace(/[)(]/g, '_')
         wrapper.classList.add(serializedId);
         if (initialSet?.has(factId)) wrapper.classList.add("initial-fact");
-        wrapper.addEventListener("mouseenter", () => styleSheet.textContent = `.${serializedId} { background-color: #383a42; font-weight: 700; }`);
-        wrapper.addEventListener("mouseleave", () => { if (styleSheet.textContent?.match(serializedId)) styleSheet.textContent = ""; });
+        wrapper.addEventListener("mouseenter", () => styleSheet.textContent = `.${serializedId} { background-color: #383a42; font-weight: 700; } .reaction > .${serializedId} { outline: dashed 2px lime; }`);
+        // wrapper.addEventListener("mouseleave", () => { if (styleSheet.textContent?.match(serializedId)) styleSheet.textContent = ""; });
         return wrapper;
     }
     output.append(...result.map(r => {

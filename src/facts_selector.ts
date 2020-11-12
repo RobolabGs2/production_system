@@ -12,38 +12,40 @@ export function createFactsSelector(names: Map<string, string>, choosed: (dir: D
     items.classList.add("selectable-list");
     const initialInputs = new Array<HTMLInputElement>();
     const targetInputs = new Array<HTMLInputElement>();
-    new ClickableSVGButton(header, SVGPictures.Delete, () => Array<HTMLInputElement>().concat(initialInputs, targetInputs).forEach(input=>input.checked=false))
-    items.append(...Array.from(names.entries()).map(([id, name]) => {
-        const line = document.createElement("section");
-        line.classList.add('selectable-line');
-        line.title = id;
-        const isInitial = document.createElement("input");
-        isInitial.value = id;
-        isInitial.name = "isInitial";
-        isInitial.type = "checkbox";
-        const isTarget = document.createElement("input");
-        isTarget.value = id;
-        isTarget.name = "isTarget";
-        isTarget.type = "radio";
-        line.append(isInitial, name, isTarget);
-        initialInputs.push(isInitial);
-        targetInputs.push(isTarget);
-        line.addEventListener("mouseup", (ev: MouseEvent) => {
-            if (ev.target != line) return
-            switch (ev.button) {
-                case 0:
-                    if (isInitial.checked = !isInitial.checked)
-                        isTarget.checked = false;
-                    break;
-                case 2:
-                    if (isTarget.checked = !isTarget.checked)
-                        isInitial.checked = false;
-                    break;
-            }
-        });
-        line.addEventListener("contextmenu", (ev) => ev.preventDefault());
-        return line;
-    }));
+    new ClickableSVGButton(header, SVGPictures.Delete, () => Array<HTMLInputElement>().concat(initialInputs, targetInputs).forEach(input => input.checked = false))
+    items.append(...Array.from(names.entries())
+        .sort((a, b) => a[1].localeCompare(b[1]))
+        .map(([id, name]) => {
+            const line = document.createElement("section");
+            line.classList.add('selectable-line');
+            line.title = id;
+            const isInitial = document.createElement("input");
+            isInitial.value = id;
+            isInitial.name = "isInitial";
+            isInitial.type = "checkbox";
+            const isTarget = document.createElement("input");
+            isTarget.value = id;
+            isTarget.name = "isTarget";
+            isTarget.type = "radio";
+            line.append(isInitial, name, isTarget);
+            initialInputs.push(isInitial);
+            targetInputs.push(isTarget);
+            line.addEventListener("mouseup", (ev: MouseEvent) => {
+                if (ev.target != line) return
+                switch (ev.button) {
+                    case 0:
+                        if (isInitial.checked = !isInitial.checked)
+                            isTarget.checked = false;
+                        break;
+                    case 2:
+                        if (isTarget.checked = !isTarget.checked)
+                            isInitial.checked = false;
+                        break;
+                }
+            });
+            line.addEventListener("contextmenu", (ev) => ev.preventDefault());
+            return line;
+        }));
     const createEvent = (dir: Direction) => {
         return (ev: MouseEvent) => {
             const targetFact = targetInputs.find((input) => input.checked);
@@ -58,11 +60,11 @@ export function createFactsSelector(names: Map<string, string>, choosed: (dir: D
             }
             const initialFactsIds = initialFacts.map(i => i.value);
             const targetFactId = targetFact.value;
-            window.localStorage.setItem("last", JSON.stringify({initial: initialFactsIds, target: targetFactId}))
+            window.localStorage.setItem("last", JSON.stringify({ initial: initialFactsIds, target: targetFactId }))
             choosed(dir, initialFactsIds, targetFactId);
         }
     }
-    fetchLocalStorage("last").then(({initial, target}: {initial: string[], target: string})=> {
+    fetchLocalStorage("last").then(({ initial, target }: { initial: string[], target: string }) => {
         const savedInitial = new Set(initial);
         initialInputs.filter(f => savedInitial.has(f.value)).forEach(input => input.checked = true);
         targetInputs.filter(f => f.value === target).forEach(input => input.checked = true);
@@ -79,8 +81,7 @@ export function createFactsSelector(names: Map<string, string>, choosed: (dir: D
 }
 
 function fetchLocalStorage(key: string): Promise<any> {
-    return new Promise(function(resolve, reject)
-    {
+    return new Promise(function (resolve, reject) {
         const value = window.localStorage.getItem(key);
         if (value)
             resolve(JSON.parse(value));
