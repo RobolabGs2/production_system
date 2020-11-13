@@ -67,7 +67,7 @@ Mn2O7 + H2O -> HMnO4
 Na2SO4 + C -> Na2S + CO2
 Na2S + CaCO3 -> Na2CO3 + CaS
 NaCl + H2SO4 -> Na2SO4 + HCl
-NH3 + CO2 + H2O + NaCl -> NaHCO3 + HN4Cl
+NH3 + CO2 + H2O + NaCl -> NaHCO3 + NH4Cl
 NaHCO3 + t -> Na2CO3 + H2O + CO2
 SiO2 + NaOH -> Na2SiO3 + H2O
 SiO2 + Na2CO3 -> Na2SiO3 + CO2
