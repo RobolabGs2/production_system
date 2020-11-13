@@ -26,24 +26,15 @@ export function ForwardDeduce(rules: Rule[], initial: string[], target: string):
 
 export function BackwardDeduce(rules: Rule[], initial: string[], target: string): Rule[] | undefined {
     const agenta = new Map<string, Rule|null>(initial.map(f=>[f, null]));
-    if(backwardDeduce(rules, agenta, target)) {
-        let result = new Array<Rule>();
-        let stack = [target];
-        let founded = new Set<string>(initial);
-        for(;stack.length;) {
-            let top = stack.pop()!;
-            let rule = agenta.get(top);
-            if(!rule)
-                continue;
-            result.push(rule);
-            founded.add(top);
-            const next = rule.premises.filter(x => !founded.has(x));
-            next.forEach(x=>founded.add(x));
-            stack.push(...next);
-        }
-        return result.reverse();
-    }
-    return;
+    return backwardDeduce(rules, agenta, target) ? restoreResult(agenta, target) : undefined;
+}
+
+function restoreResult(agenta: Map<string, Rule|null>, target: string, cache = new Set<string>()): Rule[] {
+    const rule = agenta.get(target);
+    if(!rule || cache.has(target))
+        return [];
+    cache.add(target);
+    return rule.premises.map(p=>restoreResult(agenta, p, cache)).reduce((acc, x) => acc.concat(x), []).concat([rule]);
 }
 
 function backwardDeduce(rules: Rule[], agenta: Map<string, Rule|null>, target: string, search: Set<string> = new Set()): boolean {
