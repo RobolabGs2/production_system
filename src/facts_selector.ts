@@ -60,7 +60,12 @@ export function createFactsSelector(names: Map<string, string>, choosed: (dir: D
             }
             const initialFactsIds = initialFacts.map(i => i.value);
             const targetFactId = targetFact.value;
-            window.localStorage.setItem("last", JSON.stringify({ initial: initialFactsIds, target: targetFactId }))
+            const jsonSnapshot = JSON.stringify({ initial: initialFactsIds, target: targetFactId });
+            console.log(jsonSnapshot)
+            window.localStorage.setItem("last", jsonSnapshot)
+            const url = new URL(window.location.href)
+            url.searchParams.set("data", utf8_to_b64(jsonSnapshot))
+            history.pushState(null, "", url.toString())
             choosed(dir, initialFactsIds, targetFactId);
         }
     }
@@ -82,8 +87,27 @@ export function createFactsSelector(names: Map<string, string>, choosed: (dir: D
 
 function fetchLocalStorage(key: string): Promise<any> {
     return new Promise(function (resolve, reject) {
+        const url = new URL(window.location.href)
+        const param = url.searchParams.get("data")
+        if(param) {
+            try {
+                const json = b64_to_utf8(param)
+                console.log(json)
+                return resolve(JSON.parse(json))
+            } catch(e) {
+                console.log(e)
+            }
+        }
         const value = window.localStorage.getItem(key);
         if (value)
             resolve(JSON.parse(value));
     });
+}
+
+function utf8_to_b64(str: string): string {
+	return window.btoa(unescape(encodeURIComponent(str)));
+}
+
+function b64_to_utf8(str: string): string {
+	return decodeURIComponent(escape(window.atob(str)));
 }

@@ -49,13 +49,11 @@ Promise.all(
             else
                 outputFooter.textContent = "Не выводимо";
         } catch (e) {
-            outputFooter.textContent = e;
+            outputFooter.textContent = e as any;
         }
     });
     output.innerHTML = `<div style="text-align: center;">Справа можно выбрать начальные факты и конечный факт (с помощью чекбоксов или ЛКМ и ПКМ по строчке).<div>`;
     document.querySelector("article")!.append(outputArticle, chooseItems);
-    if (notFound.size)
-        console.warn(Array.from(notFound.keys()).join("\n"));
 });
 
 function printRules(facts: Map<string, string>, result: Rule[], output: HTMLElement, outputFooter: HTMLElement, styleSheet: HTMLStyleElement, initialSet?: Set<string>) {
